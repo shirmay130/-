@@ -1,0 +1,742 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>勞小009 · 年級組教師互評系統 (八項加權)</title>
+    <!-- 引入 Google Font 增加風格差異 -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Quicksand:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <!-- 引入 SheetJS -->
+    <script src="https://cdn.sheetjs.com/xlsx-0.20.2/package/dist/xlsx.full.min.js"></script>
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+        body {
+            background: linear-gradient(145deg, #d4e0ec 0%, #b8c9dd 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+            font-family: 'Inter', 'Quicksand', 'Noto Sans TC', sans-serif;
+        }
+        .card {
+            background: rgba(255, 255, 255, 0.9);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border-radius: 60px 60px 60px 60px;
+            box-shadow: 0 30px 50px rgba(25, 45, 70, 0.3), 0 10px 25px rgba(0, 20, 30, 0.2), inset 0 2px 4px rgba(255,255,255,0.8);
+            width: 100%;
+            max-width: 1300px;
+            padding: 35px 40px;
+            border: 2px solid rgba(255,255,255,0.7);
+        }
+        /* 全新標題風格 */
+        .header-area {
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 30px;
+            background: rgba(45, 75, 100, 0.2);
+            padding: 20px 30px;
+            border-radius: 100px;
+            border: 2px dashed #ffffff;
+        }
+        .school-brand {
+            background: #2d4b64;
+            color: #f9e57c;
+            font-weight: 800;
+            font-size: 2rem;
+            padding: 10px 35px;
+            border-radius: 80px;
+            letter-spacing: 4px;
+            box-shadow: 0 10px 20px rgba(0,0,0,0.2);
+            border: 3px solid #f9e57c;
+            font-family: 'Quicksand', sans-serif;
+        }
+        .title-right {
+            display: flex;
+            align-items: center;
+            gap: 20px;
+            flex-wrap: wrap;
+        }
+        h1 {
+            font-size: 2.2rem;
+            font-weight: 700;
+            color: #1d3b4f;
+            text-shadow: 3px 3px 0 #f9e57c;
+            margin: 0;
+            letter-spacing: 1px;
+        }
+        .grade-selector {
+            background: white;
+            border-radius: 50px;
+            padding: 5px 15px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            box-shadow: 0 6px 12px rgba(0,0,0,0.1);
+            border: 2px solid #f9e57c;
+        }
+        .grade-selector label {
+            font-weight: 600;
+            color: #1d3b4f;
+            font-size: 1.1rem;
+        }
+        .grade-selector select {
+            padding: 10px 20px;
+            border-radius: 40px;
+            border: 2px solid #b3cde0;
+            font-size: 1.1rem;
+            font-weight: 500;
+            background: #f0f7fe;
+            cursor: pointer;
+            outline: none;
+        }
+        .grade-selector select:focus {
+            border-color: #f9e57c;
+        }
+        .step-tag {
+            background: #f9e57c;
+            color: #1d3b4f;
+            border-radius: 30px;
+            padding: 6px 24px;
+            font-size: 1rem;
+            font-weight: 700;
+            display: inline-block;
+            margin-bottom: 15px;
+            box-shadow: 0 6px 0 #b09b4b;
+            border: 2px solid white;
+        }
+        .section {
+            background: rgba(255, 255, 255, 0.8);
+            backdrop-filter: blur(4px);
+            border-radius: 50px;
+            padding: 28px 32px;
+            margin-bottom: 35px;
+            box-shadow: 0 20px 30px rgba(45, 75, 100, 0.2), inset 0 2px 8px white;
+            border: 2px solid white;
+        }
+        .flex-row {
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+            gap: 20px;
+        }
+        .input-group {
+            flex: 2 1 300px;
+            display: flex;
+            gap: 12px;
+        }
+        .input-group input {
+            flex: 1;
+            padding: 16px 25px;
+            border: 3px solid #cfdeee;
+            border-radius: 60px;
+            font-size: 1rem;
+            background: #ffffff;
+            transition: 0.2s;
+            font-family: 'Inter', sans-serif;
+        }
+        .input-group input:focus {
+            border-color: #f9e57c;
+            outline: none;
+            box-shadow: 0 0 0 5px rgba(249, 229, 124, 0.3);
+        }
+        button {
+            background: #2d4b64;
+            border: none;
+            color: white;
+            padding: 16px 34px;
+            border-radius: 60px;
+            font-weight: 600;
+            font-size: 1.1rem;
+            cursor: pointer;
+            transition: 0.2s;
+            box-shadow: 0 10px 20px rgba(0, 40, 60, 0.3);
+            border: 2px solid #f9e57c;
+            display: inline-flex;
+            align-items: center;
+            gap: 10px;
+            font-family: 'Quicksand', sans-serif;
+        }
+        button:hover {
+            background: #1e3c50;
+            transform: translateY(-4px);
+            box-shadow: 0 16px 28px rgba(0, 0, 0, 0.3);
+        }
+        button:active {
+            transform: translateY(2px);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+        }
+        button.secondary {
+            background: #7f9bb3;
+            border-color: white;
+        }
+        button.warning {
+            background: #c2624b;
+            border-color: #ffe0b5;
+        }
+        .pill-list {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 14px 18px;
+            margin: 20px 0 10px;
+        }
+        .pill {
+            background: #e9f0f9;
+            color: #1d3b4f;
+            padding: 12px 28px;
+            border-radius: 60px;
+            font-size: 1.1rem;
+            font-weight: 500;
+            border: 2px solid #b3cde0;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.05);
+        }
+        .self-selector {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 16px 24px;
+            margin: 15px 0 10px;
+        }
+        .self-option {
+            background: #deecfb;
+            border-radius: 60px;
+            padding: 14px 32px;
+            border: 3px solid transparent;
+            cursor: pointer;
+            transition: 0.15s;
+            font-weight: 600;
+            font-size: 1.1rem;
+            box-shadow: 0 6px 0 #a0b9cf;
+        }
+        .self-option.selected {
+            background: #f9e57c;
+            color: #1d3b4f;
+            border-color: #2d4b64;
+            box-shadow: 0 8px 0 #b09b4b;
+            transform: translateY(-2px);
+        }
+        .table-wrapper {
+            overflow-x: auto;
+            border-radius: 40px;
+            box-shadow: 0 15px 30px rgba(0, 30, 50, 0.2);
+            margin-top: 25px;
+            border: 3px solid white;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            background: white;
+            min-width: 1200px;
+            font-size: 0.95rem;
+        }
+        th {
+            background: #2d4b64;
+            color: #f9e57c;
+            font-weight: 700;
+            font-size: 0.9rem;
+            padding: 18px 6px;
+            text-align: center;
+            border-right: 2px solid #4a6f8c;
+            white-space: nowrap;
+        }
+        th:last-child {
+            border-right: none;
+        }
+        td {
+            padding: 14px 6px;
+            text-align: center;
+            border-bottom: 2px solid #dbe6f0;
+            vertical-align: middle;
+            background-color: #fcfdff;
+        }
+        .score-input {
+            width: 70px;
+            padding: 12px 4px;
+            text-align: center;
+            border: 3px solid #cfdeee;
+            border-radius: 50px;
+            font-weight: 600;
+            background: #f9fcff;
+            font-size: 1rem;
+        }
+        .score-input:focus {
+            border-color: #f9e57c;
+            outline: none;
+            box-shadow: 0 0 0 4px rgba(249,229,124,0.4);
+        }
+        .total-score {
+            font-weight: 700;
+            background: #f9e57c;
+            border-radius: 50px;
+            padding: 8px 14px;
+            min-width: 80px;
+            display: inline-block;
+            color: #1d3b4f;
+            border: 2px solid #2d4b64;
+            font-size: 1rem;
+        }
+        .warning-text {
+            color: #c24f2a;
+            font-weight: 700;
+            background: #fff2e5;
+            padding: 12px 25px;
+            border-radius: 60px;
+            display: inline-block;
+            border: 2px solid #ffb08a;
+        }
+        .action-buttons {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: space-between;
+            align-items: center;
+            margin-top: 30px;
+            gap: 20px;
+        }
+        .weight-hint {
+            background: #f9e57c;
+            padding: 18px 28px;
+            border-radius: 80px;
+            margin-bottom: 25px;
+            font-size: 0.95rem;
+            color: #1d3b4f;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 20px 30px;
+            border: 4px solid white;
+            font-weight: 600;
+        }
+        .weight-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            background: rgba(255,255,255,0.6);
+            padding: 6px 18px;
+            border-radius: 40px;
+        }
+        .badge {
+            background: #2d4b64;
+            color: #f9e57c;
+            border-radius: 30px;
+            padding: 6px 14px;
+            font-size: 0.8rem;
+            font-weight: 700;
+            border: 2px solid white;
+        }
+        .note-box {
+            background: #e2f0fa;
+            border-left: 12px solid #f9e57c;
+            padding: 18px 28px;
+            border-radius: 50px;
+            margin-top: 25px;
+            font-size: 1rem;
+            color: #1d3b4f;
+            font-weight: 500;
+            border: 2px solid white;
+        }
+        .icon-emoji {
+            font-size: 1.5rem;
+            margin-right: 8px;
+        }
+        .grade-badge {
+            background: #f9e57c;
+            padding: 8px 20px;
+            border-radius: 40px;
+            font-weight: 700;
+            display: inline-block;
+            margin-left: 15px;
+            border: 2px solid #2d4b64;
+        }
+        .highlight {
+            background: #f9e57c;
+            font-weight: 700;
+            padding: 0 5px;
+            border-radius: 20px;
+        }
+    </style>
+</head>
+<body>
+<div class="card" id="app">
+    <!-- 全新風格標題區：勞小009 + 年級下拉 -->
+    <div class="header-area">
+        <div class="school-brand">勞小009</div>
+        <div class="title-right">
+            <h1>年級組教師互評</h1>
+            <div class="grade-selector">
+                <label>📌 年級</label>
+                <select v-model="selectedGrade">
+                    <option value="一">一年級</option>
+                    <option value="二">二年級</option>
+                    <option value="三">三年級</option>
+                    <option value="四">四年級</option>
+                    <option value="五">五年級</option>
+                    <option value="六">六年級</option>
+                </select>
+            </div>
+        </div>
+    </div>
+
+    <!-- 第一步：組員名單 -->
+    <div class="section">
+        <div class="step-tag"><span class="icon-emoji">👥</span> 第一步 · 建立教師名單</div>
+        <h3 style="font-size:1.5rem; margin-bottom:15px;">📋 教師名單 (不評自己)</h3>
+        <div class="flex-row">
+            <div class="input-group">
+                <input type="text" placeholder="輸入姓名, 例如: 陳老師" v-model="newMember" @keyup.enter="addMember">
+                <button @click="addMember">➕ 新增教師</button>
+            </div>
+            <button class="secondary" @click="resetMembers">🔄 重設名單</button>
+        </div>
+        <div class="pill-list">
+            <span v-for="(m, idx) in members" :key="idx" class="pill">
+                {{ m }} <span style="cursor:pointer; margin-left:12px; font-weight:bold; color:#b14;" @click="removeMember(idx)">✕</span>
+            </span>
+            <span v-if="members.length === 0" class="pill" style="background:#fadfd8;">暫無教師，請新增</span>
+        </div>
+    </div>
+
+    <!-- 第二步：選擇評價人 (任何人都可以) -->
+    <div class="section">
+        <div class="step-tag"><span class="icon-emoji">👤</span> 第二步 · 選擇評價人</div>
+        <h3 style="font-size:1.5rem; margin-bottom:15px;">🧑 誰正在進行評價？</h3>
+        <div class="self-selector">
+            <span v-for="(m, idx) in members" :key="idx"
+                  class="self-option" :class="{ selected: raterIndex === idx }"
+                  @click="setRater(idx)">
+                {{ m }}
+            </span>
+            <span v-if="members.length === 0" class="warning-text">請先新增教師</span>
+        </div>
+        <div v-if="raterIndex !== null" style="margin-top:20px; background:#d7ecff; padding:14px 25px; border-radius:60px; font-weight:600;">
+            ✅ 當前評價人：<strong style="font-size:1.2rem;">{{ members[raterIndex] }}</strong> (不會評價自己)
+        </div>
+    </div>
+
+    <!-- 第三步：評分表格 (八項＋總分) 權重更新：科組長加分×0.1，級組長加分×0.1 -->
+    <div class="section">
+        <div class="step-tag"><span class="icon-emoji">⭐</span> 第三步 · 八項指標評分</div>
+        <h3 style="font-size:1.5rem; margin-bottom:15px;">📝 為其他教師打分 (0~10)</h3>
+
+        <!-- 權重提示 (八項) 更新後 -->
+        <div class="weight-hint">
+            <span class="weight-item"><span class="badge">×0.10</span> 師德高尚a</span>
+            <span class="weight-item"><span class="badge">×0.15</span> 作風規範a</span>
+            <span class="weight-item"><span class="badge">×0.15</span> 作風規範b</span>
+            <span class="weight-item"><span class="badge">×0.15</span> 作風規範c</span>
+            <span class="weight-item"><span class="badge">×0.08</span> 教學能力</span>
+            <span class="weight-item"><span class="badge">×0.05</span> 課堂實施</span>
+            <span class="weight-item"><span class="badge" style="background:#e68a3d;">×0.10</span> 科組長加分</span>
+            <span class="weight-item"><span class="badge" style="background:#e68a3d;">×0.10</span> 級組長加分</span>
+            <span style="margin-left:auto; font-weight:700;">總分 = 師德0.1 + 規範a0.15 + 規範b0.15 + 規範c0.15 + 教學0.08 + 課堂0.05 + 科組0.1 + 級組0.1</span>
+        </div>
+
+        <div v-if="raterIndex === null" class="warning-text">⚠️ 請先在第二步選擇評價人</div>
+        <div v-else-if="members.length <= 1" class="warning-text">👥 教師人數不足，無法評價他人</div>
+        <div v-else>
+            <div class="table-wrapper">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>被評人</th>
+                            <th>師德高尚a<br>×0.10</th>
+                            <th>作風規範a<br>×0.15</th>
+                            <th>作風規範b<br>×0.15</th>
+                            <th>作風規範c<br>×0.15</th>
+                            <th>教學能力<br>×0.08</th>
+                            <th>課堂實施<br>×0.05</th>
+                            <th>科組長加分<br>×0.10</th>
+                            <th>級組長加分<br>×0.10</th>
+                            <th>加權總分</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr v-for="(member, idx) in members" :key="idx">
+                            <td style="font-weight:700; background:#eef4fc;">{{ member }}</td>
+                            <td v-if="idx === raterIndex" colspan="10" style="color:#6f8fa8; background:#f5f9ff; font-size:1.1rem;">⭐ 評價人不評價自己</td>
+                            <td v-else v-for="(proj, projIdx) in 8" :key="projIdx">
+                                <input class="score-input" type="number" min="0" max="10" step="1"
+                                       v-model.number="scoreMatrix[raterIndex][idx][projIdx]"
+                                       @input="validateScore($event, raterIndex, idx, projIdx)"
+                                       placeholder="0-10">
+                            </td>
+                            <td v-if="idx !== raterIndex">
+                                <span class="total-score">{{ computeTotalFor(raterIndex, idx) }}</span>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+            <div style="margin-top:20px; font-size:1rem; background:#f0f8ff; padding:12px 22px; border-radius:60px; border:2px solid #f9e57c;">
+                * 只可輸入0~10整數，總分即時計算 <span style="background:#f9e57c; padding:2px 10px; border-radius:30px;">科組/級組加分權重已調整為 0.1</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- 第四步：結果與匯出 (無最近數據顯示) -->
+    <div class="section">
+        <div class="step-tag"><span class="icon-emoji">📊</span> 第四步 · 匯出結果</div>
+        <h3 style="font-size:1.5rem; margin-bottom:15px;">📦 匯出 XLSX (不包含評價人自己)</h3>
+        <div class="action-buttons">
+            <button @click="saveToLocalStorage">💾 儲存當前評價 (內部)</button>
+            <button @click="exportToXLSX" style="background:#e68a3d;">📊 匯出 XLSX</button>
+            <button class="warning" @click="clearStorage">🗑️ 清除已存數據</button>
+        </div>
+        
+        <!-- 提示說明：匯出不包括評價人自己，且檔案名稱包含評價人姓名 -->
+        <div class="note-box" v-if="raterIndex !== null">
+            📌 匯出的 Excel 將<strong>僅包含評價人「{{ members[raterIndex] }}」</strong>對其他教師的評分 (自動排除自己) · 年級 {{ selectedGrade }}<br>
+            <span style="background:#f9e57c; padding:4px 12px; border-radius:30px; display:inline-block; margin-top:8px;">📁 檔名範例: 勞小009_三年級_陳老師_評分_2025-01-01.xlsx</span>
+        </div>
+        <div class="note-box" v-else>
+            ⚠️ 請先選擇評價人，才能匯出評分數據
+        </div>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/vue@2.7.14/dist/vue.js"></script>
+<script>
+    (function() {
+        const STORAGE_KEY = 'laoxiao009_grade_teacher_eight_v2';
+
+        new Vue({
+            el: '#app',
+            data: {
+                newMember: '',
+                members: [],
+                raterIndex: null,      // 評價人索引 (不再是組長)
+                selectedGrade: '一',    // 預設一年級
+                // scoreMatrix[評價者][被評者][0..7] 分別對應八個項目
+                scoreMatrix: [],
+            },
+            watch: {
+                members: {
+                    handler: function(newMems, oldMems) {
+                        this.rebuildMatrixPreserveScores(oldMems || []);
+                        if (this.raterIndex !== null && (newMems.length <= this.raterIndex || this.raterIndex < 0)) {
+                            this.raterIndex = null;
+                        }
+                    },
+                    deep: false,
+                    immediate: true
+                }
+            },
+            methods: {
+                // 權重定義 [師德高尚a, 作風規範a, 作風規範b, 作風規範c, 教學能力, 課堂實施, 科組長加分, 級組長加分]
+                // 更新：科組長加分 0.1，級組長加分 0.1
+                getWeights() {
+                    return [0.10, 0.15, 0.15, 0.15, 0.08, 0.05, 0.10, 0.10];
+                },
+                // 計算某評價人(r)對某被評人(c)的加權總分
+                computeTotalFor(r, c) {
+                    if (r === c || !this.scoreMatrix[r] || !this.scoreMatrix[r][c]) return '—';
+                    const scores = this.scoreMatrix[r][c];
+                    const weights = this.getWeights();
+                    let sum = 0;
+                    let hasValue = false;
+                    for (let i = 0; i < 8; i++) {
+                        const val = scores[i];
+                        if (val !== null && !isNaN(val) && val >= 0) {
+                            sum += val * weights[i];
+                            hasValue = true;
+                        }
+                    }
+                    return hasValue ? sum.toFixed(2) : '—';
+                },
+                addMember() {
+                    const name = this.newMember.trim();
+                    if (name === '') return;
+                    this.members.push(name);
+                    this.newMember = '';
+                },
+                removeMember(idx) {
+                    this.members.splice(idx, 1);
+                },
+                resetMembers() {
+                    this.members = [];
+                    this.raterIndex = null;
+                    this.scoreMatrix = [];
+                },
+                setRater(idx) {
+                    this.raterIndex = idx;
+                },
+                rebuildMatrixPreserveScores(oldMems) {
+                    const newMems = this.members;
+                    const n = newMems.length;
+                    const newMatrix = [];
+                    for (let r = 0; r < n; r++) {
+                        const row = [];
+                        for (let c = 0; c < n; c++) {
+                            row.push([null, null, null, null, null, null, null, null]); // 八項
+                        }
+                        newMatrix.push(row);
+                    }
+
+                    // 保留舊分數 (如果成員完全相同)
+                    if (oldMems && oldMems.length === n && oldMems.every((v,i)=> v === newMems[i]) && this.scoreMatrix.length === n) {
+                        for (let r = 0; r < n; r++) {
+                            for (let c = 0; c < n; c++) {
+                                if (r !== c && this.scoreMatrix[r] && this.scoreMatrix[r][c]) {
+                                    const old = this.scoreMatrix[r][c];
+                                    if (old && Array.isArray(old)) {
+                                        for (let p = 0; p < 8; p++) {
+                                            if (old[p] !== null && !isNaN(old[p])) {
+                                                let v = Number(old[p]);
+                                                if (v >= 0 && v <= 10) newMatrix[r][c][p] = v;
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                    this.scoreMatrix = newMatrix;
+                },
+                validateScore(event, r, c, pIdx) {
+                    let val = event.target.value;
+                    if (val === '') {
+                        this.scoreMatrix[r][c][pIdx] = null;
+                        return;
+                    }
+                    let num = Number(val);
+                    if (isNaN(num)) {
+                        this.scoreMatrix[r][c][pIdx] = null;
+                    } else {
+                        if (num < 0) num = 0;
+                        if (num > 10) num = 10;
+                        num = Math.round(num);
+                        this.scoreMatrix[r][c][pIdx] = num;
+                        event.target.value = num;
+                    }
+                },
+                // 內部儲存
+                saveToLocalStorage() {
+                    if (this.members.length === 0) {
+                        alert('教師名單為空，無法儲存。');
+                        return;
+                    }
+                    const exportObj = this.buildFullExportObject();
+                    const jsonStr = JSON.stringify(exportObj, null, 2);
+                    localStorage.setItem(STORAGE_KEY, jsonStr);
+                    alert('✅ 當前評價已儲存 (內部更新)');
+                },
+                buildFullExportObject() {
+                    const exportObj = {
+                        savedTime: new Date().toLocaleString(),
+                        grade: this.selectedGrade,
+                        members: [...this.members],
+                        raterIndex: this.raterIndex,
+                        weights: { 師德高尚a:0.10, 作風規範a:0.15, 作風規範b:0.15, 作風規範c:0.15, 教學能力:0.08, 課堂實施:0.05, 科組長加分:0.10, 級組長加分:0.10 },
+                        evaluations: []
+                    };
+                    for (let r = 0; r < this.members.length; r++) {
+                        const from = this.members[r];
+                        const toScores = [];
+                        for (let c = 0; c < this.members.length; c++) {
+                            if (r === c) continue;
+                            const raw = this.scoreMatrix[r]?.[c] || [null,null,null,null,null,null,null,null];
+                            const total = this.computeTotalFor(r, c);
+                            toScores.push({
+                                target: this.members[c],
+                                師德高尚a: raw[0],
+                                作風規範a: raw[1],
+                                作風規範b: raw[2],
+                                作風規範c: raw[3],
+                                教學能力: raw[4],
+                                課堂實施: raw[5],
+                                科組長加分: raw[6],
+                                級組長加分: raw[7],
+                                加權總分: total !== '—' ? parseFloat(total) : null
+                            });
+                        }
+                        exportObj.evaluations.push({ 評價人: from, 評分: toScores });
+                    }
+                    exportObj.rawMatrix = this.scoreMatrix.map(row => row.map(col => col ? [...col] : [null,null,null,null,null,null,null,null]));
+                    return exportObj;
+                },
+                // 匯出 XLSX - 僅當前評價人數據，且排除自己，檔名包含評價人姓名
+                exportToXLSX() {
+                    if (this.members.length === 0) {
+                        alert('沒有教師資料，無法匯出。');
+                        return;
+                    }
+                    if (this.raterIndex === null) {
+                        alert('請先選擇評價人，才能匯出評分數據。');
+                        return;
+                    }
+
+                    const raterIdx = this.raterIndex;
+                    const raterName = this.members[raterIdx];
+
+                    const wsData = [];
+                    // 標題列 (八項)
+                    const headerRow = [
+                        '評價人', '年級', '被評教師', 
+                        '師德高尚a', '作風規範a', '作風規範b', '作風規範c', 
+                        '教學能力', '課堂實施', '科組長加分', '級組長加分', '加權總分'
+                    ];
+                    wsData.push(headerRow);
+
+                    for (let c = 0; c < this.members.length; c++) {
+                        if (raterIdx === c) continue; // 排除評價人自己
+                        const raw = this.scoreMatrix[raterIdx]?.[c] || [null, null, null, null, null, null, null, null];
+                        const total = this.computeTotalFor(raterIdx, c);
+                        const row = [
+                            raterName,
+                            `${this.selectedGrade}年級`,
+                            this.members[c],
+                            raw[0] !== null ? raw[0] : '',
+                            raw[1] !== null ? raw[1] : '',
+                            raw[2] !== null ? raw[2] : '',
+                            raw[3] !== null ? raw[3] : '',
+                            raw[4] !== null ? raw[4] : '',
+                            raw[5] !== null ? raw[5] : '',
+                            raw[6] !== null ? raw[6] : '',
+                            raw[7] !== null ? raw[7] : '',
+                            total !== '—' ? total : ''
+                        ];
+                        wsData.push(row);
+                    }
+
+                    if (wsData.length === 1) { // 只有標題列
+                        wsData.push([raterName, `${this.selectedGrade}年級`, '無評分資料', '', '', '', '', '', '', '', '', '']);
+                    }
+
+                    const wb = XLSX.utils.book_new();
+                    const ws = XLSX.utils.aoa_to_sheet(wsData);
+                    
+                    ws['!cols'] = [
+                        { wch: 12 }, // 評價人
+                        { wch: 8 },  // 年級
+                        { wch: 12 }, // 被評教師
+                        { wch: 10 }, // 師德高尚a
+                        { wch: 10 }, // 作風規範a
+                        { wch: 10 }, // 作風規範b
+                        { wch: 10 }, // 作風規範c
+                        { wch: 8 },  // 教學能力
+                        { wch: 8 },  // 課堂實施
+                        { wch: 8 },  // 科組長加分
+                        { wch: 8 },  // 級組長加分
+                        { wch: 10 }  // 加權總分
+                    ];
+
+                    XLSX.utils.book_append_sheet(wb, ws, '教師互評');
+                    
+                    // 檔名包含評價人姓名
+                    const fileName = `勞小009_${this.selectedGrade}年級_${raterName}_評分_${new Date().toISOString().slice(0,10)}.xlsx`;
+                    XLSX.writeFile(wb, fileName);
+                },
+                clearStorage() {
+                    localStorage.removeItem(STORAGE_KEY);
+                    alert('已清除內部儲存數據');
+                }
+            }
+        });
+    })();
+</script>
+</body>
+</html>
